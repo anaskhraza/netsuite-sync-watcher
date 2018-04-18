@@ -11,16 +11,21 @@ var path = require('path');
 var _ = require('lodash');
 // this is one of the few libs I found that is compatible with the (linux) webstorm terminal
 var readlineSync = require('readline-sync');
+
+
+
 // custom debugger that logs only if environment variable DEBUG=ns
-var debug = require('debug')('ns');
+var debug = require('debug')('nsw');
 
 const CONFIG_FILE = 'NetSuiteConfig.js';
 
 
 // configure the command line interface
+//
 program
     .version(require('./package.json').version)
     .option('-u, --upload <file>', "Upload file to NetSuite file cabinet")
+    .option('-w, --watchenabled', "Watch Enabled")
     .option('-d, --desc description', "Description for uploaded file")
     .option('-f, --folder [value]',
         "Overrides the internal ID of the target folder for the uploaded file")
@@ -49,6 +54,12 @@ if (program.decryptConfig) {
     var plaintext = secureConfig.decryptFile(CONFIG_FILE + ".enc");
     console.log(plaintext);
     process.exit();
+} 
+
+if(program.watchenabled) {
+    secureConfig.executeWatcher();
+    secureConfig.unwatchedChokidar();
+    console.log("Watch Enabled");
 }
 
 
@@ -65,7 +76,7 @@ if (program.upload) {
         if (err) throw err;
 
         debug('response from NS cabinet add: %s', JSON.stringify(resp))
-
+        console.log(JSON.stringify(resp.Envelope.Body));
         var wr = resp.Envelope.Body.addResponse.writeResponse;
         if (wr.status.isSuccess == "true") {
             var successMsg = "File uploaded successfully as internalid " + wr.baseRef.internalId;
