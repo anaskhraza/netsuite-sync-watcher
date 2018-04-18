@@ -1,7 +1,7 @@
 {
   "description": "push files to the file cabinet",
   "name": "netsuite-sync-watcher",
-  "version": "1.2.2",
+  "version": "1.0.0",
   "dependencies": {
     "chalk": "^1.1.1",
     "chokidar": "^2.0.3",
@@ -15,7 +15,7 @@
   },
   "main": "nsw.js",
   "directories": {
-    "test": "test"
+    "lib": "lib"
   },
   "devDependencies": {
     "mocha": "2.0.1",
@@ -25,7 +25,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Anas Khurshid",
   "license": "ISC",
   "bin": {
     "ns": "nsw.js"
@@ -35,6 +35,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ExploreConsulting/netsuite-sync.git"
-  }
+    "url": "git+https://github.com/anaskhraza/netsuite-sync-watcher.git"
+  },
+  "bugs": {
+    "url": "https://github.com/anaskhraza/netsuite-sync-watcher/issues"
+  },
+  "homepage": "https://github.com/anaskhraza/netsuite-sync-watcher#readme",
+  "keywords": [
+    "netsuite",
+    "netsuite",
+    "sync"
+  ]
 }
