@@ -51,12 +51,12 @@ program
     .parse(process.argv);
 
 if (program.decryptConfig) {
-    var plaintext = secureConfig.decryptFile(CONFIG_FILE + ".enc");
+    //var plaintext = secureConfig.decryptFile(CONFIG_FILE + ".enc");
     console.log(plaintext);
     process.exit();
-} 
+}
 
-if(program.watchenabled) {
+if (program.watchenabled) {
     secureConfig.executeWatcher();
     secureConfig.unwatchedChokidar();
     console.log("Watch Enabled");
@@ -114,12 +114,20 @@ function createConfig(params) {
 if (program.genConfig) {
     console.log("Generating " + CONFIG_FILE + "...")
     console.log('Enter credentials to select account/role to use..')
-    var username = readlineSync.question('Account login email:');
-    var password = readlineSync.question('Account login password:');
+    var username = readlineSync.question('Account login email: ');
+    var password = readlineSync.question('Account login password: ');
     console.log('Enter the internal id of the folder to which files will be saved. If you do not set this it will' +
         ' default to zero and you must edit the config file manually to set the folder id value');
-    var folder = readlineSync.question('Destination Folder Id:');
-    var isSandbox = readlineSync.keyInYN('Sandbox Account?');
+    var folder = readlineSync.question('Destination Folder Id: ');
+    var isSandbox = readlineSync.keyInYN('Sandbox Account? ');
+    console.log('Configure Watcher');
+    var isWatcherEnabled = readlineSync.keyInYN('Enable Watcher');
+    console.log("isWatcherEnabled " + isWatcherEnabled)
+    if (isWatcherEnabled) {
+        var watchPath = readlineSync.question('Specify the specific path to watch. If not leave blank It wil watch all the root files: ');
+        var watchFiles = readlineSync.question('Provide files to be WatchedFiles in a comma separated. Please specify path of each file as if not in root folder: ');
+        var unWatchedFiles = readlineSync.question('Provide files to be unWatchedFiles in a comma separated. Please specify path of each file as if not in root folder: ');
+    }
 
     fileCabinet.discoverConfigInfo(username, password, isSandbox)
         .then(function (result) {
@@ -133,15 +141,16 @@ if (program.genConfig) {
                 password: password,
                 role: accountInfo.role.internalId,
                 webserviceshost: accountInfo.dataCenterURLs.webservicesDomain,
-                folderid: folder || 0
+                folderid: folder || 0,
+                enableWatcher: isWatcherEnabled,
+                watchPath: watchPath ? watchPath : '.',
+                watchFiles: watchFiles,
+                unWatchedFiles: unWatchedFiles,
             })
         })
         .then(function (configData) {
             fs.writeFileSync(CONFIG_FILE, configData);
-            console.log('wrote ' + CONFIG_FILE)
-            var out = secureConfig.encryptFile(CONFIG_FILE);
-            console.log("wrote " + out);
-            console.log("don't forget to delete " + CONFIG_FILE + " after you've tested it's working!")
+            console.log('wrote ' + configData)
         })
         .catch(console.error)
 }
@@ -160,17 +169,17 @@ function promptUserForAccountSelection(info) {
         .map(function (r) { return r.account.name + ' (' + r.role.name + ')' })
         .chunk(PAGE_SIZE)
         .forEach(function (q, index) {
-        // detect being on 'last page' of results
-        var onlastPage = (info.length - (PAGE_SIZE*index)) <= PAGE_SIZE
-        var cancelPrompt = onlastPage ? "Cancel" : "Show More...";
-        var userInput = readlineSync.keyInSelect(q, 'Which NetSuite Account (Role) to use?', {cancel: cancelPrompt});
-        if (userInput === -1) return true // keep iterating if the user didn't select an account
-        else{
-            console.log('selected', q[userInput])
-            // we are on the the nth page of results, so calculate the true index relative to the the entire info array
-            selectedAccountIndex = (index * PAGE_SIZE) + userInput
-            return false // abort forEach()
-        }
-    })
+            // detect being on 'last page' of results
+            var onlastPage = (info.length - (PAGE_SIZE * index)) <= PAGE_SIZE
+            var cancelPrompt = onlastPage ? "Cancel" : "Show More...";
+            var userInput = readlineSync.keyInSelect(q, 'Which NetSuite Account (Role) to use?', { cancel: cancelPrompt });
+            if (userInput === -1) return true // keep iterating if the user didn't select an account
+            else {
+                console.log('selected', q[userInput])
+                // we are on the the nth page of results, so calculate the true index relative to the the entire info array
+                selectedAccountIndex = (index * PAGE_SIZE) + userInput
+                return false // abort forEach()
+            }
+        })
     return info[selectedAccountIndex];
 }
